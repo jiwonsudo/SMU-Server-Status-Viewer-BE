@@ -11,7 +11,7 @@ const port = process.env.PORT || 5000;
 const validApiKey = process.env.API_KEY;
 
 const corsOptions = {
-  origin: 'https://smu-server-status-viewer.vercel.app/',
+  origin: 'https://smu-server-status-viewer.vercel.app',
   methods: ['GET', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'x-api-key'],
   credentials: true,
