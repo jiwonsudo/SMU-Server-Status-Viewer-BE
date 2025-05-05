@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -10,8 +11,14 @@ const corsOptions = {
   methods: ['GET'],
 };
   
-app.use(cors(corsOptions));
+const limiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20, // 1분에 최대 20번
+  message: 'Too many requests from this IP, please try again a minute later.',
+});
 
+app.use(cors(corsOptions));
+app.use(limiter);
 app.use(express.json());
 
 // 각 서비스 URL 설정
