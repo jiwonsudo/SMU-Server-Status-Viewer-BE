@@ -8,13 +8,9 @@ const rateLimit = require('express-rate-limit');
 const app = express();
 const port = process.env.PORT || 5000;
 
-const validApiKey = process.env.API_KEY;
-
 const corsOptions = {
-  origin: 'https://smu-server-status-viewer.vercel.app',
+  origin: ['https://turbo-cod-7x5g9wj64452pjxv-3000.app.github.dev', 'https://smu-server-status-viewer.vercel.app'],
   methods: ['GET', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'x-api-key'],
-  credentials: true,
 };
   
 const limiter = rateLimit({
@@ -26,21 +22,6 @@ const limiter = rateLimit({
 app.use(cors(corsOptions));
 app.use(limiter);
 app.use(express.json());
-
-// API 키 인증 미들웨어
-function authenticateApiKey(req, res, next) {
-  const apiKey = req.headers['x-api-key'];
-  
-  if (!apiKey) {
-    return res.status(400).json({ message: 'API key is missing' });
-  }
-  
-  if (apiKey !== validApiKey) {
-    return res.status(403).json({ message: 'Forbidden: Invalid API key' });
-  }
-  
-  next();
-}
 
 // 각 서비스 URL 설정
 const serviceURL = {
@@ -76,7 +57,7 @@ async function checkServiceStatus(url) {
     if (error.code === 'ECONNABORTED') {
       return { 
         status: 'timeout', 
-        responseTime: duration,
+        responseTime: 'N/A',
         message: '요청 시간이 초과되었습니다.' 
       };
     } else {
@@ -91,24 +72,24 @@ async function checkServiceStatus(url) {
 }
 
 // 상태 확인 엔드포인트들
-app.get('/status/home', authenticateApiKey, async (req, res) => {
+app.get('/status/home', async (req, res) => {
   const result = await checkServiceStatus(serviceURL.HOME);
   res.json(result);
 });
 
-app.get('/status/notice', authenticateApiKey, async (req, res) => {
+app.get('/status/notice', async (req, res) => {
   const result = await checkServiceStatus(serviceURL.NOTICE);
   res.json(result);
 });
 
 /*
-app.get('/status/sammul', authenticateApiKey, async (req, res) => {
+app.get('/status/sammul', async (req, res) => {
   const result = await checkServiceStatus(serviceURL.SAMMUL);
   res.json(result);
 });
 */
 
-app.get('/status/ecampus', authenticateApiKey, async (req, res) => {
+app.get('/status/ecampus', async (req, res) => {
   const result = await checkServiceStatus(serviceURL.ECAMPUS);
   res.json(result);
 });
