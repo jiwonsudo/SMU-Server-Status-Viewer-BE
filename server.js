@@ -5,7 +5,13 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+const corsOptions = {
+  origin: 'https://your-frontend-domain.com',
+  methods: ['GET'],
+};
+  
+app.use(cors(corsOptions));
+
 app.use(express.json());
 
 // 각 서비스 URL 설정
