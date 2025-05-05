@@ -12,12 +12,14 @@ const validApiKey = process.env.API_KEY;
 
 const corsOptions = {
   origin: 'https://smu-server-status-viewer.vercel.app/',
-  methods: ['GET'],
+  methods: ['GET', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'x-api-key'],
+  credentials: true,
 };
   
 const limiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 20, // 1분에 최대 20번
+  max: 20,
   message: 'Too many requests from this IP, please try again a minute later.',
 });
 
@@ -27,7 +29,7 @@ app.use(express.json());
 
 // API 키 인증 미들웨어
 function authenticateApiKey(req, res, next) {
-  const apiKey = req.headers['x-api-key']; // 요청 헤더에서 API 키를 가져옵니다.
+  const apiKey = req.headers['x-api-key'];
   
   if (!apiKey) {
     return res.status(400).json({ message: 'API key is missing' });
