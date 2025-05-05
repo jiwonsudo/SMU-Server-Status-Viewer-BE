@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
@@ -6,8 +8,10 @@ const rateLimit = require('express-rate-limit');
 const app = express();
 const port = process.env.PORT || 5000;
 
+const validApiKey = process.env.API_KEY;
+
 const corsOptions = {
-  origin: 'https://your-frontend-domain.com',
+  origin: 'https://smu-server-status-viewer.vercel.app/',
   methods: ['GET'],
 };
   
@@ -20,6 +24,21 @@ const limiter = rateLimit({
 app.use(cors(corsOptions));
 app.use(limiter);
 app.use(express.json());
+
+// API 키 인증 미들웨어
+function authenticateApiKey(req, res, next) {
+  const apiKey = req.headers['x-api-key']; // 요청 헤더에서 API 키를 가져옵니다.
+  
+  if (!apiKey) {
+    return res.status(400).json({ message: 'API key is missing' });
+  }
+  
+  if (apiKey !== validApiKey) {
+    return res.status(403).json({ message: 'Forbidden: Invalid API key' });
+  }
+  
+  next();
+}
 
 // 각 서비스 URL 설정
 const serviceURL = {
@@ -34,37 +53,37 @@ async function checkServiceStatus(url) {
   try {
     const response = await axios.head(url, { timeout: 5000, maxRedirects: 5 });
     if (response.status === 200) {
-      return { status: 'ok', code: response.status, message: '서비스가 정상입니다.' };
+      return { status: 'ok', message: '서비스가 정상입니다.' };
     } else {
-      return { status: 'error', code: response.status, message: `서비스 상태: ${response.status}` };
+      return { status: 'error', message: `서비스 상태: ${response.status}` };
     }
   } catch (error) {
     if (error.code === 'ECONNABORTED') {
-      return { status: 'error', code: response.status, message: '요청 시간이 초과되었습니다.' };
+      return { status: 'timeout', message: '요청 시간이 초과되었습니다.' };
     } else {
-      return { status: 'error', code: response.status, message: '서비스 접속 실패', error: error.message };
+      return { status: 'error', message: '서비스 접속 실패', error: error.message };
     }
   }
 }
 // 상태 확인 엔드포인트들
-app.get('/status/home', async (req, res) => {
+app.get('/status/home', authenticateApiKey, async (req, res) => {
   const result = await checkServiceStatus(serviceURL.HOME);
   res.json(result);
 });
 
-app.get('/status/notice', async (req, res) => {
+app.get('/status/notice', authenticateApiKey, async (req, res) => {
   const result = await checkServiceStatus(serviceURL.NOTICE);
   res.json(result);
 });
 
 /*
-app.get('/status/sammul', async (req, res) => {
+app.get('/status/sammul', authenticateApiKey, async (req, res) => {
   const result = await checkServiceStatus(serviceURL.SAMMUL);
   res.json(result);
 });
 */
 
-app.get('/status/ecampus', async (req, res) => {
+app.get('/status/ecampus', authenticateApiKey, async (req, res) => {
   const result = await checkServiceStatus(serviceURL.ECAMPUS);
   res.json(result);
 });
