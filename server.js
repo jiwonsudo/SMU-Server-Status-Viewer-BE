@@ -48,23 +48,46 @@ const serviceURL = {
   ECAMPUS: 'https://ecampus.smu.ac.kr/'
 };
 
-// 상태 점검 함수
+// 서버 상태 확인 함수
 async function checkServiceStatus(url) {
+  const start = Date.now();
+  
   try {
     const response = await axios.head(url, { timeout: 5000, maxRedirects: 5 });
+    const duration = Date.now() - start;  // 응답 시간 계산
+    
     if (response.status === 200) {
-      return { status: 'ok', message: '서비스가 정상입니다.' };
+      return { 
+        status: 'ok', 
+        responseTime: duration,
+        message: '서비스가 정상입니다.' 
+      };
     } else {
-      return { status: 'error', message: `서비스 상태: ${response.status}` };
+      return { 
+        status: 'error', 
+        responseTime: duration,
+        message: `서비스 상태: ${response.status}` 
+      };
     }
   } catch (error) {
+    const duration = Date.now() - start;
     if (error.code === 'ECONNABORTED') {
-      return { status: 'timeout', message: '요청 시간이 초과되었습니다.' };
+      return { 
+        status: 'timeout', 
+        responseTime: duration,
+        message: '요청 시간이 초과되었습니다.' 
+      };
     } else {
-      return { status: 'error', message: '서비스 접속 실패', error: error.message };
+      return { 
+        status: 'error', 
+        responseTime: duration,
+        message: '서비스 접속 실패', 
+        error: error.message 
+      };
     }
   }
 }
+
 // 상태 확인 엔드포인트들
 app.get('/status/home', authenticateApiKey, async (req, res) => {
   const result = await checkServiceStatus(serviceURL.HOME);
