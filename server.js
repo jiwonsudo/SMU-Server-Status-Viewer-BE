@@ -43,13 +43,13 @@ async function checkServiceStatus(url) {
       return { 
         status: 'ok', 
         responseTime: duration,
-        message: '서비스가 정상입니다.' 
+        message: '정상 서비스' 
       };
     } else {
       return { 
         status: 'error', 
         responseTime: duration,
-        message: `서비스 상태: ${response.status}` 
+        message: `서비스 비정상: ${response.status}` 
       };
     }
   } catch (error) {
@@ -58,7 +58,7 @@ async function checkServiceStatus(url) {
       return { 
         status: 'timeout', 
         responseTime: 'N/A',
-        message: '요청 시간이 초과되었습니다.' 
+        message: '매우 느림(비정상)' 
       };
     } else {
       return { 
